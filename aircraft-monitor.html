@@ -122,13 +122,19 @@ function alertBadge(level){
 function renderCards(data){
   const c = data.current || {};
   const cohort = data.cohort || {};
+  const w = data.watchlist || {};
+  const num = v => `<span class="v">${fmtNum(v)}</span>`;
   const cards = [
     ["Nível de alerta", alertBadge(c.alertLevel)],
     ["Emergência", alertBadge(c.emergencyLevel)],
-    ["Aeronaves ao vivo", `<span class="v">${rows.length}</span>`],
-    ["Concorrentes", `<span class="v">${fmtNum(c.concurrentCount)}</span>`],
+    ["Aeronaves ao vivo", num(rows.length)],
+    ["Concorrentes", num(c.concurrentCount)],
     ["Z-Score", `<span class="v">${c.zScore!=null? Number(c.zScore).toFixed(2):"—"}</span>`],
-    ["Na watchlist", `<span class="v">${fmtNum(cohort.trackedCount)}</span>`],
+    ["Cadastradas (watchlist)", num(w.watchlistCount ?? w.trackedCount ?? cohort.trackedCount)],
+    ["Rastreadas (total)", num(w.trackedCount ?? cohort.trackedCount)],
+    ["Da FAA", num(w.faaCount)],
+    ["Globais", num(w.globalCount)],
+    ["Globais militares", num(w.globalMilitaryCount)],
     ["Dados de", `<span style="font-size:14px">${fmtTime(c.asOf || data.snapshotGeneratedAt)}</span>`],
   ];
   $("cards").innerHTML = cards.map(([k,v]) =>
