@@ -35,10 +35,10 @@ SSL_CONTEXT.check_hostname = False
 SSL_CONTEXT.verify_mode = ssl.CERT_NONE
 
 # A pagina pede /data/<arquivo>.json e o proxy tenta estas origens, em ordem,
-# ate uma responder com sucesso. Se a URL do EWS mudar, ajuste aqui.
+# ate uma responder com JSON valido. Se a URL do EWS mudar, ajuste aqui.
 UPSTREAMS = [
-    "https://ews.kylemcdonald.net/",
     "https://pub-49bb6a6f314c47be9b481c25e5f6ca9e.r2.dev/",
+    "https://ews.kylemcdonald.net/",
 ]
 
 
@@ -59,6 +59,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 )
                 with urllib.request.urlopen(req, timeout=20, context=SSL_CONTEXT) as resp:
                     body = resp.read()
+                # Alguns enderecos respondem "200" mas devolvem a pagina HTML do
+                # site (comeca com "<") em vez do JSON. So aceitamos JSON de verdade.
+                if not body.lstrip()[:1] in (b"{", b"["):
+                    print(f"[ignora]  {url}  ->  resposta nao e JSON (provavel HTML)")
+                    continue
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json; charset=utf-8")
                 self.send_header("Access-Control-Allow-Origin", "*")
