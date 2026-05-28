@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor de Aeronaves — EWS</title>
+<style>
+  :root{
+    --bg:#0f1620; --card:#162231; --text:#e7edf3; --muted:#9fb0c0;
+    --accent:#4ea3ff; --line:#26384b; --code:#0b1119;
+    --ok:#46c08a; --warn:#f0a04b; --danger:#f0556b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; line-height:1.5}
+  header{padding:20px 28px; border-bottom:1px solid var(--line); background:#0c131c}
+  header h1{margin:0 0 4px; font-size:22px}
+  header p{margin:0; color:var(--muted); font-size:14px}
+  .wrap{padding:22px 28px; max-width:1200px; margin:0 auto}
+  .controls{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:18px}
+  select,input,button{
+    background:var(--card); color:var(--text); border:1px solid var(--line);
+    border-radius:9px; padding:9px 12px; font-size:14px}
+  button{cursor:pointer}
+  button:hover{border-color:var(--accent); color:var(--accent)}
+  input[type=search]{min-width:220px}
+  label.inline{display:flex; align-items:center; gap:6px; color:var(--muted); font-size:14px}
+  /* cards de status */
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:20px}
+  .scard{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px}
+  .scard .k{font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted)}
+  .scard .v{font-size:24px; font-weight:700; margin-top:4px}
+  .badge{display:inline-block; padding:3px 10px; border-radius:999px; font-size:13px; font-weight:700}
+  .b-ok{background:rgba(70,192,138,.15); color:var(--ok)}
+  .b-warn{background:rgba(240,160,75,.15); color:var(--warn)}
+  .b-danger{background:rgba(240,85,107,.15); color:var(--danger)}
+  /* tabela */
+  table{width:100%; border-collapse:collapse; font-size:14px}
+  th,td{border-bottom:1px solid var(--line); padding:9px 10px; text-align:left; white-space:nowrap}
+  th{position:sticky; top:0; background:#0c131c; color:var(--muted); cursor:pointer; user-select:none}
+  th:hover{color:var(--accent)}
+  tbody tr:hover{background:#0c131c}
+  .tablewrap{max-height:62vh; overflow:auto; border:1px solid var(--line); border-radius:12px}
+  a{color:var(--accent)}
+  .status{margin:10px 0; font-size:14px; color:var(--muted)}
+  .err{background:rgba(240,85,107,.1); border:1px solid var(--danger); color:#ffd5db;
+    padding:14px 16px; border-radius:10px; font-size:14px}
+  .err code{background:var(--code); padding:1px 6px; border-radius:5px}
+  .muted{color:var(--muted)}
+  .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Monitor de Aeronaves — EWS</h1>
+  <p>Dados públicos do projeto <a href="https://github.com/kylemcdonald/ews" target="_blank" rel="noopener">kylemcdonald/ews</a> (snapshot atualizado a cada ~30 min).</p>
+</header>
+
+<div class="wrap">
+  <div class="controls">
+    <label class="inline">Cohort:
+      <select id="cohort">
+        <option value="dashboard.json">Principal (jatos executivos)</option>
+        <option value="military-dashboard.json">Militar</option>
+        <option value="untracked-dashboard.json">Não rastreados</option>
+      </select>
+    </label>
+    <input id="search" type="search" placeholder="Filtrar (matrícula, hex, label)…">
+    <label class="inline">
+      <input type="checkbox" id="autoref" checked> Atualizar automático (60s)
+    </label>
+    <button id="refresh">Atualizar agora</button>
+    <span class="status" id="status"></span>
+  </div>
+
+  <div class="cards" id="cards"></div>
+
+  <div id="error"></div>
+
+  <div class="tablewrap">
+    <table id="tbl">
+      <thead><tr id="thead"></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <p class="muted" style="font-size:13px; margin-top:10px">
+    Dica: clique no cabeçalho de uma coluna para ordenar. Lat/Lon abre o ponto no mapa.
+  </p>
+</div>
+
+<script>
+const BASE = "https://pub-49bb6a6f314c47be9b481c25e5f6ca9e.r2.dev/";
+const COLS = [
+  {key:"label",          label:"Aeronave"},
+  {key:"registration",   label:"Matrícula"},
+  {key:"hex",            label:"Hex (ICAO)"},
+  {key:"altitudeFt",     label:"Altitude (ft)", num:true},
+  {key:"groundSpeedKt",  label:"Veloc. (kt)",   num:true},
+  {key:"track",          label:"Rumo (°)",      num:true},
+  {key:"position",       label:"Posição"},
+  {key:"isAirborne",     label:"No ar"},
+  {key:"observed_at",    label:"Visto em"},
+];
+
+let rows = [];
+let sortKey = "label", sortDir = 1;
+let timer = null;
+
+const $ = id => document.getElementById(id);
+const fmtNum = v => (v===null||v===undefined||v==="") ? "—" : Number(v).toLocaleString("pt-BR");
+const fmtTime = v => { if(!v) return "—"; const d=new Date(v); return isNaN(d)? v : d.toLocaleString("pt-BR"); };
+
+function alertBadge(level){
+  if(!level) return '<span class="muted">—</span>';
+  const l = String(level).toLowerCase();
+  let cls = "b-ok";
+  if(l.includes("elev")||l.includes("warn")||l.includes("watch")) cls="b-warn";
+  if(l.includes("emerg")||l.includes("crit")||l.includes("high")||l.includes("danger")||l.includes("red")) cls="b-danger";
+  return `<span class="badge ${cls}">${level}</span>`;
+}
+
+function renderCards(data){
+  const c = data.current || {};
+  const cohort = data.cohort || {};
+  const cards = [
+    ["Nível de alerta", alertBadge(c.alertLevel)],
+    ["Emergência", alertBadge(c.emergencyLevel)],
+    ["Aeronaves ao vivo", `<span class="v">${rows.length}</span>`],
+    ["Concorrentes", `<span class="v">${fmtNum(c.concurrentCount)}</span>`],
+    ["Z-Score", `<span class="v">${c.zScore!=null? Number(c.zScore).toFixed(2):"—"}</span>`],
+    ["Na watchlist", `<span class="v">${fmtNum(cohort.trackedCount)}</span>`],
+    ["Dados de", `<span style="font-size:14px">${fmtTime(c.asOf || data.snapshotGeneratedAt)}</span>`],
+  ];
+  $("cards").innerHTML = cards.map(([k,v]) =>
+    `<div class="scard"><div class="k">${k}</div><div>${v}</div></div>`).join("");
+}
+
+function renderTable(){
+  const q = $("search").value.trim().toLowerCase();
+  let view = rows;
+  if(q) view = rows.filter(r =>
+    [r.label,r.registration,r.hex].some(x => String(x||"").toLowerCase().includes(q)));
+
+  view = view.slice().sort((a,b)=>{
+    let x=a[sortKey], y=b[sortKey];
+    if(x==null) return 1; if(y==null) return -1;
+    if(typeof x==="number"&&typeof y==="number") return (x-y)*sortDir;
+    return String(x).localeCompare(String(y))*sortDir;
+  });
+
+  $("thead").innerHTML = COLS.map(c =>
+    `<th data-k="${c.key}">${c.label}${sortKey===c.key?(sortDir>0?" ▲":" ▼"):""}</th>`).join("");
+  $("thead").querySelectorAll("th").forEach(th=>{
+    th.onclick = ()=>{ const k=th.dataset.k; if(sortKey===k) sortDir*=-1; else {sortKey=k; sortDir=1;} renderTable(); };
+  });
+
+  $("tbody").innerHTML = view.map(r=>{
+    const pos = (r.lat!=null && r.lon!=null)
+      ? `<a href="https://www.google.com/maps?q=${r.lat},${r.lon}" target="_blank" rel="noopener">${Number(r.lat).toFixed(3)}, ${Number(r.lon).toFixed(3)}</a>`
+      : "—";
+    const air = r.isAirborne
+      ? '<span class="dot" style="background:var(--ok)"></span>Sim'
+      : '<span class="dot" style="background:var(--muted)"></span>Não';
+    return `<tr>
+      <td>${r.label||"—"}</td>
+      <td>${r.registration||"—"}</td>
+      <td>${r.hex||"—"}</td>
+      <td>${fmtNum(r.altitudeFt)}</td>
+      <td>${fmtNum(r.groundSpeedKt)}</td>
+      <td>${r.track!=null?Math.round(r.track):"—"}</td>
+      <td>${pos}</td>
+      <td>${air}</td>
+      <td>${fmtTime(r.observed_at)}</td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="${COLS.length}" class="muted" style="padding:20px">Nenhuma aeronave no ar neste snapshot.</td></tr>`;
+}
+
+async function load(){
+  const file = $("cohort").value;
+  $("error").innerHTML = "";
+  $("status").textContent = "Carregando…";
+  try{
+    const res = await fetch(BASE + file, {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const data = await res.json();
+    rows = Array.isArray(data.liveAircraft) ? data.liveAircraft : [];
+    renderCards(data);
+    renderTable();
+    $("status").textContent = "Atualizado: " + new Date().toLocaleTimeString("pt-BR");
+  }catch(e){
+    $("status").textContent = "";
+    $("error").innerHTML = `<div class="err">
+      <strong>Não foi possível carregar os dados.</strong><br>
+      Erro: <code>${e.message}</code><br><br>
+      Causas comuns:<br>
+      • Sem conexão com a internet.<br>
+      • O navegador bloqueou por <b>CORS</b> ao abrir o arquivo direto (<code>file://</code>).
+      Nesse caso, rode um servidor local simples na pasta do arquivo:
+      <code>python -m http.server 8000</code> e abra <code>http://localhost:8000/aircraft-monitor.html</code>.<br>
+      • A URL do snapshot mudou no projeto EWS.
+    </div>`;
+  }
+}
+
+function setAuto(){
+  if(timer){ clearInterval(timer); timer=null; }
+  if($("autoref").checked) timer = setInterval(load, 60000);
+}
+
+$("refresh").onclick = load;
+$("cohort").onchange = load;
+$("search").oninput = renderTable;
+$("autoref").onchange = setAuto;
+
+load();
+setAuto();
+</script>
+</body>
+</html>
