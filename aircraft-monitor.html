@@ -182,15 +182,23 @@ function renderTable(){
 }
 
 async function fetchSnapshot(file){
-  // 1) tentativa direta: funciona só se o servidor do EWS liberar CORS.
+  const direct = BASE + file;
+  // 1) direto: funciona se o servidor do EWS liberar CORS e a rede permitir.
   try{
-    const r = await fetch(BASE + file, {cache:"no-store"});
+    const r = await fetch(direct, {cache:"no-store"});
     if(r.ok) return await r.json();
-  }catch(_){ /* cai para o proxy local */ }
-  // 2) reserva: proxy local (rode  python ews-proxy.py  na pasta).
-  const r2 = await fetch("data/" + file, {cache:"no-store"});
-  if(!r2.ok) throw new Error("HTTP "+r2.status+" (proxy local)");
-  return await r2.json();
+  }catch(_){ /* tenta as reservas abaixo */ }
+  // 2) proxy local: quando você roda  python ews-proxy.py  na mesma pasta.
+  try{
+    const r = await fetch("data/" + file, {cache:"no-store"});
+    if(r.ok) return await r.json();
+  }catch(_){ /* tenta a reserva pública abaixo */ }
+  // 3) proxy público (último recurso): útil quando a página está hospedada
+  //    (ex.: Netlify) sem proxy local. Busca o JSON por um serviço com CORS.
+  const pub = "https://api.allorigins.win/raw?url=" + encodeURIComponent(direct);
+  const r3 = await fetch(pub, {cache:"no-store"});
+  if(!r3.ok) throw new Error("HTTP "+r3.status+" (proxy público)");
+  return await r3.json();
 }
 
 async function load(){
