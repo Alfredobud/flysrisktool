@@ -181,14 +181,24 @@ function renderTable(){
   }).join("") || `<tr><td colspan="${COLS.length}" class="muted" style="padding:20px">Nenhuma aeronave no ar neste snapshot.</td></tr>`;
 }
 
+async function fetchSnapshot(file){
+  // 1) tentativa direta: funciona só se o servidor do EWS liberar CORS.
+  try{
+    const r = await fetch(BASE + file, {cache:"no-store"});
+    if(r.ok) return await r.json();
+  }catch(_){ /* cai para o proxy local */ }
+  // 2) reserva: proxy local (rode  python ews-proxy.py  na pasta).
+  const r2 = await fetch("data/" + file, {cache:"no-store"});
+  if(!r2.ok) throw new Error("HTTP "+r2.status+" (proxy local)");
+  return await r2.json();
+}
+
 async function load(){
   const file = $("cohort").value;
   $("error").innerHTML = "";
   $("status").textContent = "Carregando…";
   try{
-    const res = await fetch(BASE + file, {cache:"no-store"});
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    const data = await res.json();
+    const data = await fetchSnapshot(file);
     rows = Array.isArray(data.liveAircraft) ? data.liveAircraft : [];
     renderCards(data);
     renderTable();
@@ -198,12 +208,12 @@ async function load(){
     $("error").innerHTML = `<div class="err">
       <strong>Não foi possível carregar os dados.</strong><br>
       Erro: <code>${e.message}</code><br><br>
-      Causas comuns:<br>
-      • Sem conexão com a internet.<br>
-      • O navegador bloqueou por <b>CORS</b> ao abrir o arquivo direto (<code>file://</code>).
-      Nesse caso, rode um servidor local simples na pasta do arquivo:
-      <code>python -m http.server 8000</code> e abra <code>http://localhost:8000/aircraft-monitor.html</code>.<br>
-      • A URL do snapshot mudou no projeto EWS.
+      O servidor do EWS bloqueia a busca direta (<b>CORS</b>). Use o proxy local:<br>
+      1. Na pasta onde estão <code>aircraft-monitor.html</code> e <code>ews-proxy.py</code>, rode:
+      <code>python ews-proxy.py</code> (ou <code>py ews-proxy.py</code> no Windows).<br>
+      2. Abra <code>http://localhost:8000/aircraft-monitor.html</code> e atualize a página.<br><br>
+      Se ainda falhar: confira a internet, ou a URL do snapshot pode ter mudado
+      (ajuste <code>UPSTREAMS</code> em <code>ews-proxy.py</code>).
     </div>`;
   }
 }
