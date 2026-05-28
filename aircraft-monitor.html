@@ -29,7 +29,9 @@
   .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:20px}
   .scard{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px}
   .scard .k{font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted)}
-  .scard .v{font-size:24px; font-weight:700; margin-top:4px}
+  .scard .v{font-size:28px; font-weight:800; margin-top:4px}
+  .scard .d{font-size:12px; color:var(--muted); margin-top:7px; line-height:1.4}
+  .scard.hi{border-color:var(--accent); background:#16263b}
   .badge{display:inline-block; padding:3px 10px; border-radius:999px; font-size:13px; font-weight:700}
   .b-ok{background:rgba(70,192,138,.15); color:var(--ok)}
   .b-warn{background:rgba(240,160,75,.15); color:var(--warn)}
@@ -124,21 +126,31 @@ function renderCards(data){
   const cohort = data.cohort || {};
   const w = data.watchlist || {};
   const num = v => `<span class="v">${fmtNum(v)}</span>`;
+  // [titulo, valor, explicacao, destacar?]
   const cards = [
-    ["Nível de alerta", alertBadge(c.alertLevel)],
-    ["Emergência", alertBadge(c.emergencyLevel)],
-    ["Aeronaves ao vivo", num(rows.length)],
-    ["Concorrentes", num(c.concurrentCount)],
-    ["Z-Score", `<span class="v">${c.zScore!=null? Number(c.zScore).toFixed(2):"—"}</span>`],
-    ["Cadastradas (watchlist)", num(w.watchlistCount ?? w.trackedCount ?? cohort.trackedCount)],
-    ["Rastreadas (total)", num(w.trackedCount ?? cohort.trackedCount)],
-    ["Da FAA", num(w.faaCount)],
-    ["Globais", num(w.globalCount)],
-    ["Globais militares", num(w.globalMilitaryCount)],
-    ["Dados de", `<span style="font-size:14px">${fmtTime(c.asOf || data.snapshotGeneratedAt)}</span>`],
+    ["Nível de alerta", alertBadge(c.alertLevel),
+     "normal / elevado / alarme — compara o tráfego de agora com o esperado para este dia e horário.", true],
+    ["Nível de emergência", alertBadge(c.emergencyLevel),
+     "Escala de 1 (tudo calmo) a 5 (pico muito acima do normal).", true],
+    ["Aeronaves ao vivo", num(rows.length),
+     "Jatos detectados no ar neste momento (a lista detalhada está na tabela abaixo).", true],
+    ["Concorrentes", num(c.concurrentCount),
+     "Contagem de jatos simultâneos usada no cálculo do alerta."],
+    ["Z-Score", `<span class="v">${c.zScore!=null? Number(c.zScore).toFixed(2):"—"}</span>`,
+     "Quantos desvios-padrão acima (+) ou abaixo (−) do normal estamos agora."],
+    ["Cadastradas (watchlist)", num(w.watchlistCount ?? w.trackedCount ?? cohort.trackedCount),
+     "Total de aeronaves que o sistema acompanha nesta cohort."],
+    ["Rastreadas (total)", num(w.trackedCount ?? cohort.trackedCount),
+     "Aeronaves com registro/metadados carregados."],
+    ["Da FAA", num(w.faaCount), "Registradas na base da aviação dos EUA (FAA)."],
+    ["Globais", num(w.globalCount), "Registradas em bases internacionais."],
+    ["Globais militares", num(w.globalMilitaryCount), "Aeronaves classificadas como militares."],
+    ["Dados de", `<span style="font-size:15px">${fmtTime(c.asOf || data.snapshotGeneratedAt)}</span>`,
+     "Horário do snapshot (atualiza a cada ~30 min na fonte)."],
   ];
-  $("cards").innerHTML = cards.map(([k,v]) =>
-    `<div class="scard"><div class="k">${k}</div><div>${v}</div></div>`).join("");
+  $("cards").innerHTML = cards.map(([k,v,d,hi]) =>
+    `<div class="scard${hi?" hi":""}"><div class="k">${k}</div><div>${v}</div>`
+    + (d?`<div class="d">${d}</div>`:"") + `</div>`).join("");
 }
 
 function renderTable(){
