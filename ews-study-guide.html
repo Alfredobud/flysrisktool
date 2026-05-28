@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EWS Study Project — Guia de Estudo</title>
+<style>
+  :root{
+    --bg:#0f1620; --card:#162231; --text:#e7edf3; --muted:#9fb0c0;
+    --accent:#4ea3ff; --line:#26384b; --code:#0b1119; --ok:#46c08a; --warn:#f0a04b;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.65; font-size:16px;
+  }
+  .layout{display:flex; min-height:100vh}
+  /* Índice lateral */
+  nav{
+    width:300px; flex:0 0 300px; background:#0c131c; border-right:1px solid var(--line);
+    padding:24px 18px; position:sticky; top:0; height:100vh; overflow:auto;
+  }
+  nav h2{font-size:13px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin:0 0 12px}
+  nav a{display:block; color:var(--text); text-decoration:none; padding:6px 10px; border-radius:8px; font-size:14px}
+  nav a:hover{background:var(--card); color:var(--accent)}
+  /* Conteúdo */
+  main{flex:1; max-width:920px; margin:0 auto; padding:40px 48px 120px}
+  header.hero{margin-bottom:32px; border-bottom:1px solid var(--line); padding-bottom:24px}
+  header.hero h1{font-size:30px; margin:0 0 8px}
+  header.hero p{color:var(--muted); margin:0}
+  section{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:22px 26px; margin:22px 0; scroll-margin-top:20px;
+  }
+  section h2{margin-top:0; font-size:22px; color:var(--accent)}
+  h3{font-size:17px; margin:22px 0 8px}
+  a{color:var(--accent)}
+  ul,ol{padding-left:22px}
+  li{margin:4px 0}
+  code{background:var(--code); padding:2px 6px; border-radius:6px; font-size:14px; color:#c8e1ff}
+  pre{background:var(--code); border:1px solid var(--line); padding:14px 16px; border-radius:10px; overflow:auto}
+  pre code{background:none; padding:0; color:#cfe3ff}
+  table{width:100%; border-collapse:collapse; margin:12px 0; font-size:14px}
+  th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+  th{background:#0c131c; color:var(--muted)}
+  blockquote{border-left:3px solid var(--accent); margin:12px 0; padding:6px 14px; color:var(--muted); background:#0c131c; border-radius:0 8px 8px 0}
+  .tag{display:inline-block; font-size:12px; padding:2px 10px; border-radius:999px; background:#0c131c; border:1px solid var(--line); color:var(--muted); margin-bottom:10px}
+  .top{position:fixed; right:20px; bottom:20px; background:var(--accent); color:#04101f; padding:10px 16px; border-radius:999px; text-decoration:none; font-weight:600; box-shadow:0 6px 20px rgba(0,0,0,.4)}
+  @media(max-width:860px){
+    nav{display:none}
+    main{padding:24px 20px 100px}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav>
+    <h2>Índice</h2>
+    <a href="#s1">1. Finalidade</a>
+    <a href="#s2">2. Contexto do usuário</a>
+    <a href="#s3">3. Repositório de referência</a>
+    <a href="#s4">4. Limite legal e copyright</a>
+    <a href="#s5">5. Papel do Claude Code</a>
+    <a href="#s6">6. Estratégia de GitHub</a>
+    <a href="#s7">7. Primeira sessão</a>
+    <a href="#s8">8. Plano por fases</a>
+    <a href="#s9">9. Comandos: classificação</a>
+    <a href="#s10">10. Commits e branches</a>
+    <a href="#s11">11. Suporte ao iniciante</a>
+    <a href="#s12">12. Plataforma futura</a>
+    <a href="#s13">13. Primeiros prompts</a>
+    <a href="#s14">14. Checklist</a>
+    <a href="#s15">15. Fontes</a>
+    <a href="#s16">16. Regra final</a>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <span class="tag">Guia de estudo · EWS</span>
+      <h1>CLAUDE.md — EWS Study Project</h1>
+      <p>Workspace de aprendizado em GitHub, Node.js e Python — versão em HTML para leitura simples.</p>
+    </header>
+
+    <section id="s1">
+      <h2>1. Finalidade deste arquivo</h2>
+      <p>Este arquivo deve ser colocado na raiz do repositório que será aberto no Claude Code. Ele contém o contexto permanente, os limites de uso, o plano de estudo e as regras de trabalho para ajudar Alfredo Budel, que está começando em GitHub, Node.js e Python.</p>
+      <p><strong>Objetivo imediato:</strong> estudar localmente a arquitetura do repositório público <code>kylemcdonald/ews</code>, fazendo o dashboard funcionar em modo demonstração e entendendo o projeto gradualmente.</p>
+      <p><strong>Objetivo futuro, separado desta fase:</strong> aprender os conceitos arquiteturais para posteriormente desenvolver uma solução própria de early warning voltada a riscos de fornecedores, logística, clima, transporte e riscos geopolíticos.</p>
+    </section>
+
+    <section id="s2">
+      <h2>2. Contexto do usuário</h2>
+      <p>O usuário é Alfredo Budel. Características importantes para a assistência:</p>
+      <ul>
+        <li>Está iniciando no uso de GitHub e Claude Code.</li>
+        <li>Não domina Python, Node.js, React, SQLite ou Cloudflare.</li>
+        <li>Prefere orientações passo a passo, em português, com explicação clara antes de mudanças.</li>
+        <li>Trabalha com análise de risco de fornecedores, dashboards Power BI, Early Risk Tool (ERT), risco climático e governança de supply chain.</li>
+        <li>O interesse neste repositório é <strong>estudo técnico e aprendizado</strong>, não copiar o produto e apresentá-lo como criação própria.</li>
+        <li>Futuramente deseja desenvolver uma arquitetura própria para risco de fornecedores, com sinais como backlog, OTIF, ASN, eventos climáticos, riscos de transporte, greves, notícias e risco geopolítico.</li>
+      </ul>
+      <p>Ao responder, use linguagem simples e explique termos técnicos na primeira vez em que aparecerem.</p>
+    </section>
+
+    <section id="s3">
+      <h2>3. Repositório de referência</h2>
+      <p>Repositório original a ser estudado:</p>
+      <ul>
+        <li>Projeto: <code>kylemcdonald/ews</code></li>
+        <li>Endereço: <a href="https://github.com/kylemcdonald/ews/tree/main">github.com/kylemcdonald/ews</a></li>
+        <li>Natureza: Early Warning System para atividade de aeronaves rastreadas, com detecção de atividade anômala e dashboard.</li>
+      </ul>
+      <h3>Elementos identificados no repositório original</h3>
+<pre><code>.github/workflows/    automações do GitHub Actions
+client/               interface visual do dashboard
+config/               configurações
+functions/            funções associadas à implantação pública
+migrations/           migrações de banco
+scripts/              importação, processamento, exportação e alertas
+server/               servidor/API local
+workers/              rotinas para ambiente Cloudflare
+.env.example          exemplo de variáveis de ambiente
+.dev.vars.example     exemplo de variáveis locais para Pages/Functions
+README.md             documentação principal
+package.json          comandos e dependências Node.js
+requirements.txt      dependências Python</code></pre>
+      <h3>Funcionalidades confirmadas no README original</h3>
+      <ul>
+        <li>Se ainda não houver cohort/dados reais importados, o dashboard utiliza dados sintéticos de demonstração.</li>
+        <li>O banco histórico principal é <code>data/ews-main.sqlite</code>.</li>
+        <li>Também existem bases para military e non-ICAO/untracked.</li>
+        <li>O projeto possui scripts Python de importação e histórico.</li>
+        <li>O projeto possui exportação de snapshot do dashboard.</li>
+        <li>O deployment público utiliza Cloudflare Pages, Cloudflare R2 e GitHub Actions.</li>
+        <li>Há funções adicionais para alertas/assinaturas, incluindo Telegram, SMS e e-mail.</li>
+      </ul>
+      <h3>Comandos iniciais confirmados</h3>
+<pre><code>npm install
+npm run dev</code></pre>
+      <p>Resultado esperado no modo demonstração:</p>
+<pre><code>API local:       http://localhost:3030
+Dashboard web:   http://localhost:5173</code></pre>
+      <blockquote>Não iniciar importações reais, backfill histórico, publicação online ou alertas antes de concluir as fases básicas de estudo.</blockquote>
+    </section>
+
+    <section id="s4">
+      <h2>4. Limite legal e regra de copyright</h2>
+      <p>O repositório original não apresenta, na verificação inicial, um arquivo de licença identificado na raiz nem indicação clara de licença no README. Portanto:</p>
+      <ol>
+        <li>O uso inicial deve ser tratado exclusivamente como <strong>estudo pessoal e análise técnica</strong>.</li>
+        <li>Um fork dentro do GitHub pode ser utilizado como referência de estudo, preservando vínculo e autoria do projeto original.</li>
+        <li>Não remover autoria, referências ou histórico do projeto original.</li>
+        <li>Não publicar o código original ou versões modificadas como se fossem propriedade intelectual de Alfredo.</li>
+        <li>Não transformar o fork em produto comercial, projeto independente ou base de portfólio proprietário sem licença aplicável ou autorização expressa do autor.</li>
+        <li>A futura plataforma de risco de fornecedores deverá ser criada em repositório próprio, com código próprio, inspirada apenas em conceitos gerais de arquitetura e aprendizado.</li>
+      </ol>
+      <p>Sempre que for solicitado alterar, reutilizar amplamente, redistribuir ou publicar partes do código original, lembrar o usuário deste limite antes da execução.</p>
+    </section>
+
+    <section id="s5">
+      <h2>5. Papel do Claude Code neste projeto</h2>
+      <p>Claude Code deve agir como um tutor técnico e assistente de desenvolvimento para iniciante.</p>
+      <h3>Regras de comportamento</h3>
+      <ul>
+        <li>Sempre trabalhar em português, exceto nomes de arquivos, comandos e termos de código.</li>
+        <li>Antes de alterar arquivos, explicar em poucas linhas: o que será alterado; por que a alteração é necessária; como verificar se funcionou.</li>
+        <li>Fazer mudanças pequenas, rastreáveis e fáceis de reverter.</li>
+        <li>Nunca assumir que o usuário entende o terminal, Git, Node.js ou Python.</li>
+        <li>Ao apresentar comando, indicar exatamente em que pasta ele deve ser executado.</li>
+        <li>Após cada mudança, indicar o resultado esperado na tela.</li>
+        <li>Em erros, explicar a causa provável em linguagem comum e propor somente o próximo teste necessário.</li>
+        <li>Não tentar configurar toda a solução em uma única etapa.</li>
+        <li>Não criar funcionalidades novas enquanto a etapa atual não estiver funcional.</li>
+        <li>Não alterar múltiplas áreas do código ao mesmo tempo sem necessidade.</li>
+      </ul>
+      <h3>Segurança operacional</h3>
+      <ul>
+        <li>Nunca mostrar, inserir ou fazer commit de senhas, tokens, chaves API ou arquivos <code>.env</code> reais.</li>
+        <li>Antes de qualquer commit, verificar <code>git status</code>.</li>
+        <li>Antes de qualquer push, mostrar ao usuário quais arquivos serão enviados.</li>
+        <li>Não fazer push, merge, deploy ou exclusão de arquivos sem solicitação expressa do usuário.</li>
+        <li>Não configurar Cloudflare, Stripe, Telnyx, SendGrid, Telegram ou dados reais durante a fase inicial.</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <h2>6. Estratégia de GitHub para este estudo</h2>
+      <h3>Fase A — Estudo do projeto original</h3>
+      <p>O usuário poderá criar um fork do repositório original apenas para estudo e execução local. Nome sugerido do fork:</p>
+<pre><code>ews-study-project</code></pre>
+      <p>Esse fork deve permanecer claramente identificado como estudo derivado do repositório original.</p>
+      <h3>Fase B — Diário de aprendizado</h3>
+      <p>Dentro do fork de estudo, poderão ser adicionados apenas arquivos de documentação próprios do usuário:</p>
+<pre><code>CLAUDE.md
+docs/
+  learning-log.md
+  architecture-notes.md
+  setup-notes.md</code></pre>
+      <p>Qualquer commit de documentação deve deixar claro que se trata de anotações de estudo.</p>
+      <h3>Fase C — Projeto autoral futuro</h3>
+      <p>A plataforma de Supplier Early Risk Intelligence não deve nascer como simples renomeação do fork. Ela deverá ser criada posteriormente em novo repositório, por exemplo:</p>
+<pre><code>supplier-early-risk-intelligence-platform</code></pre>
+      <p>Nesse novo repositório, utilizar: requisitos próprios; arquitetura própria; código próprio; fontes de dados autorizadas; licença escolhida por Alfredo; documentação de autoria e governança.</p>
+    </section>
+
+    <section id="s7">
+      <h2>7. Plano de execução: primeira sessão</h2>
+      <h3>Missão da primeira sessão</h3>
+      <p>Apenas verificar o ambiente e fazer o sistema original rodar localmente em modo demonstração.</p>
+      <h3>Antes de começar</h3>
+      <ol>
+        <li>Ele já criou o fork no GitHub?</li>
+        <li>Ele já clonou o repositório no computador?</li>
+        <li>Ele está usando Windows?</li>
+        <li>Node.js e Python já estão instalados?</li>
+      </ol>
+      <p>Se o Claude Code já estiver aberto dentro do repositório, em vez de perguntar novamente, verificar com comandos seguros.</p>
+      <h3>Comandos de diagnóstico permitidos</h3>
+<pre><code>git status
+git remote -v
+node --version
+npm --version
+python --version
+py --version</code></pre>
+      <p>Em Windows, <code>py --version</code> pode funcionar mesmo quando <code>python --version</code> não funciona. Não tratar a falha de um deles como problema definitivo sem testar o outro.</p>
+      <h3>Verificações no repositório</h3>
+      <p>Ler antes de alterar qualquer arquivo: <code>README.md</code>, <code>package.json</code>, <code>requirements.txt</code>, <code>.gitignore</code>. Depois explicar a estrutura do projeto, os comandos usados, dependências ausentes e se o fork está vinculado ao original.</p>
+      <h3>Instalação inicial</h3>
+      <p>Somente se Node.js e npm estiverem disponíveis:</p>
+<pre><code>npm install
+npm run dev</code></pre>
+      <p>Validar que <code>http://localhost:3030</code> e <code>http://localhost:5173</code> estão acessíveis, ou identificar a mensagem de erro exata.</p>
+      <h3>Critério de conclusão</h3>
+      <ul>
+        <li><strong>Sucesso:</strong> dashboard aberto no navegador em modo demonstração.</li>
+        <li><strong>Bloqueio documentado:</strong> erro identificado, com causa provável e um único próximo passo recomendado.</li>
+      </ul>
+      <p>Não avançar para dados reais ou deploy nesta sessão.</p>
+    </section>
+
+    <section id="s8">
+      <h2>8. Plano de aprendizado por fases</h2>
+      <h3>Fase 1 — Ambiente e execução local</h3>
+      <p>Objetivo: entender o que é um repositório GitHub; clonar/abrir o fork local; confirmar Node.js/npm; rodar o dashboard com dados sintéticos.</p>
+      <p>Entregável: <code>docs/setup-notes.md</code> (data do teste, comandos executados, versões de Node/npm/Python, erro encontrado, confirmação do dashboard).</p>
+      <h3>Fase 2 — Mapa da arquitetura</h3>
+      <p>Objetivo: explicar o papel das pastas e a circulação dos dados, sem alterar lógica. Entregável: <code>docs/architecture-notes.md</code>, respondendo:</p>
+      <ol>
+        <li>Onde está a interface visual?</li>
+        <li>Onde está o servidor/API?</li>
+        <li>Onde os dados são armazenados?</li>
+        <li>Quais scripts Python existem e para que servem?</li>
+        <li>Como os dados chegam ao dashboard?</li>
+        <li>O que é necessário somente para deployment público?</li>
+        <li>O que não será utilizado agora?</li>
+      </ol>
+      <p>Diagrama de fluxo (Mermaid):</p>
+<pre><code>flowchart LR
+    Scripts[Scripts de dados] --> SQLite[(SQLite)]
+    SQLite --> Server[Servidor / API]
+    Server --> Client[Dashboard React]
+    Client --> Browser[Navegador local]</code></pre>
+      <h3>Fase 3 — Pequenas mudanças visuais de estudo</h3>
+      <p>Objetivo: localizar título principal, textos e componentes; alterar somente textos/rótulos para aprender. Regras: não alterar lógica matemática, fonte de dados nem workflows. Criar branch própria:</p>
+<pre><code>git checkout -b study/ui-text-exploration</code></pre>
+      <p>Fazer commit descritivo somente após validação do usuário. Exemplos:</p>
+<pre><code>docs: add local setup learning notes
+study: explore dashboard labels for learning</code></pre>
+      <h3>Fase 4 — Entendimento dos dados sintéticos</h3>
+      <p>Objetivo: descobrir onde o demo mode gera/serve dados; identificar campos exibidos; criar glossário sem modificar a lógica. Entregável: <code>docs/demo-data-dictionary.md</code>.</p>
+      <h3>Fase 5 — Avaliação de conceitos aproveitáveis</h3>
+      <p>Objetivo: identificar apenas ideias gerais que poderão inspirar um projeto autoral futuro: baseline histórico; desvio do comportamento normal; níveis de alerta; visualização geográfica; dados atualizados periodicamente; snapshot para frontend; banco histórico local; notificações apenas em riscos críticos. Entregável: <code>docs/concepts-for-original-supplier-risk-project.md</code> (sem copiar código).</p>
+    </section>
+
+    <section id="s9">
+      <h2>9. Comandos do projeto: classificação de uso</h2>
+      <h3>Permitidos na fase inicial</h3>
+<pre><code>npm install
+npm run dev
+git status
+git remote -v
+git branch
+git log --oneline -5</code></pre>
+      <h3>Somente após explicação e autorização</h3>
+<pre><code>npm run seed:demo
+npm run lint
+npm run build
+npm run export:snapshot</code></pre>
+      <h3>Não executar durante o estudo inicial</h3>
+<pre><code>npm run import:faa
+npm run import:global
+npm run backfill
+npm run update:main
+npm run update:military
+npm run update:untracked
+npm run deploy:pages
+npm run d1:migrate:local
+npm run d1:migrate:remote
+npm run telegram:alert
+npm run rss:update</code></pre>
+      <p>Razões: importações/backfill envolvem dados reais; deploy exige Cloudflare e variáveis de ambiente; alertas introduzem integrações externas; o usuário precisa primeiro compreender o sistema básico.</p>
+    </section>
+
+    <section id="s10">
+      <h2>10. Regras para commits e branches</h2>
+      <p><strong>Regra principal:</strong> cada commit deve representar uma única pequena melhoria ou documentação.</p>
+      <h3>Branches recomendadas</h3>
+<pre><code>main                         cópia estável do fork para estudo
+study/setup-documentation    documentação de instalação
+study/architecture-map       estudo da arquitetura
+study/ui-text-exploration    pequenas alterações visuais</code></pre>
+      <h3>Antes de criar commit</h3>
+<pre><code>git status
+git diff</code></pre>
+      <h3>Nunca fazer commit de</h3>
+<pre><code>.env
+.dev.vars
+wrangler.toml com credenciais
+tokens
+API keys
+senhas
+dados pessoais
+arquivos de banco contendo dados sensíveis</code></pre>
+      <p>Antes do primeiro commit, revisar <code>.gitignore</code>.</p>
+      <h3>Mensagens de commit recomendadas</h3>
+<pre><code>docs: add Claude Code study guidance
+docs: document local setup steps
+docs: map initial project architecture
+study: update dashboard labels for learning
+fix: resolve local demo startup issue</code></pre>
+    </section>
+
+    <section id="s11">
+      <h2>11. Padrão de suporte para iniciante</h2>
+      <p>Ao orientar Alfredo, use este formato:</p>
+      <ul>
+        <li><strong>O que estamos fazendo agora</strong> — explicação de no máximo 3 frases.</li>
+        <li><strong>Comando</strong> — o comando em bloco de código.</li>
+        <li><strong>O que deve aparecer</strong> — resultado esperado de forma visual e direta.</li>
+        <li><strong>Se aparecer erro</strong> — pedir a mensagem ou analisar o erro, sem iniciar mudanças grandes automaticamente.</li>
+        <li><strong>Registro do aprendizado</strong> — após funcionar, registrar em <code>docs/setup-notes.md</code> ou no arquivo da fase.</li>
+      </ul>
+    </section>
+
+    <section id="s12">
+      <h2>12. Mapa da futura plataforma de risco de fornecedores</h2>
+      <blockquote>Apenas referência estratégica. Não começar a construir enquanto o estudo do EWS original estiver nas fases iniciais.</blockquote>
+      <h3>Objetivo futuro</h3>
+      <p>Criar uma plataforma autoral de inteligência de risco para apoiar Procurement e Supply Network Resilience, detectando sinais precoces e orientando decisões antes que uma situação anormal vire crise.</p>
+      <h3>Usuários futuros</h3>
+      <ul>
+        <li>Material Controller</li><li>Material Planner</li><li>Buyer</li>
+        <li>Supplier Relationship Manager (SRM)</li><li>Supplier Development / Capacity team</li>
+        <li>Quality team</li><li>Crisis &amp; Risk leadership</li><li>Líderes executivos de Procurement</li>
+      </ul>
+      <h3>Tipos de sinal futuro</h3>
+      <table>
+        <thead><tr><th>Categoria</th><th>Exemplos de sinal</th></tr></thead>
+        <tbody>
+          <tr><td>Performance logística</td><td>backlog crescente, OTIF em deterioração, ASN inconsistente, entregas instáveis</td></tr>
+          <tr><td>Clima</td><td>tornado, flood, winter storm, heat, hurricane e eventos por região do fornecedor</td></tr>
+          <tr><td>Transporte</td><td>acidentes relevantes, interdições, bloqueios, portos, naufrágios, gargalos rodoviários</td></tr>
+          <tr><td>Trabalho/operação</td><td>greves, piquetes, paralisações, shutdowns</td></tr>
+          <tr><td>Geopolítica</td><td>sanções, guerras, tarifas, restrições comerciais, instabilidade regional</td></tr>
+          <tr><td>Capacidade/qualidade</td><td>falhas recorrentes, baixa capacidade, problemas de produção e quality escapes</td></tr>
+        </tbody>
+      </table>
+      <h3>Lógica conceitual futura (Mermaid)</h3>
+<pre><code>flowchart LR
+    A[Fontes de dados autorizadas] --> B[Coleta e normalização]
+    B --> C[Histórico / Baseline]
+    C --> D[Detecção de anomalias]
+    D --> E[Supplier Risk Score]
+    E --> F[Dashboard e mapa]
+    E --> G[Alertas e governança]
+    G --> H[Ações Procurement / SNR]</code></pre>
+      <h3>Conexão conceitual com o EWS estudado</h3>
+      <table>
+        <thead><tr><th>Conceito no EWS</th><th>Possível conceito próprio futuro</th></tr></thead>
+        <tbody>
+          <tr><td>Tracked aircraft</td><td>Supplier master list</td></tr>
+          <tr><td>Atividade acima do esperado</td><td>Risco acima do baseline</td></tr>
+          <tr><td>Histórico por intervalo</td><td>Tendência histórica de risco</td></tr>
+          <tr><td>Mapa e dashboard</td><td>Mapa de fornecedores e eventos</td></tr>
+          <tr><td>Nível de emergência</td><td>Nível de escalonamento</td></tr>
+          <tr><td>Snapshot atualizado</td><td>Atualização periódica do dashboard</td></tr>
+          <tr><td>Alertas em nível crítico</td><td>Notificação apenas quando a decisão é necessária</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Importante:</strong> implementar esses conceitos futuramente com arquitetura, código e documentação próprios.</p>
+    </section>
+
+    <section id="s13">
+      <h2>13. Primeiros prompts que Alfredo pode usar</h2>
+      <h3>Prompt 1 — Verificar o ambiente sem alterar arquivos</h3>
+<pre><code>Leia o arquivo CLAUDE.md antes de começar. Estou iniciando neste projeto e quero
+apenas verificar se meu ambiente está pronto para rodar o modo demonstração.
+Não altere arquivos. Verifique o estado do Git, o remote do repositório, as versões
+de Node/npm/Python e leia README.md, package.json, requirements.txt e .gitignore.
+Depois me explique em português o que encontrou e qual é apenas o próximo passo.</code></pre>
+      <h3>Prompt 2 — Rodar o dashboard demo</h3>
+<pre><code>Leia CLAUDE.md. Quero executar apenas o modo demonstração local. Antes de rodar
+qualquer comando, confirme que não haverá importação de dados reais, deploy ou uso
+de credenciais. Depois execute os comandos mínimos necessários para abrir o
+dashboard local e me explique o resultado.</code></pre>
+      <h3>Prompt 3 — Criar documentação do aprendizado</h3>
+<pre><code>Leia CLAUDE.md. O dashboard local já funcionou. Crie apenas um arquivo
+docs/setup-notes.md registrando os comandos utilizados, as versões encontradas,
+os endereços locais e o que aprendi nesta etapa. Antes do commit, mostre o
+conteúdo e o git diff.</code></pre>
+      <h3>Prompt 4 — Estudar a arquitetura sem modificar a aplicação</h3>
+<pre><code>Leia CLAUDE.md. Agora quero entender a arquitetura, sem alterar código funcional.
+Analise as pastas client, server e scripts e crie docs/architecture-notes.md em
+português, incluindo um diagrama Mermaid simples do fluxo de dados. Não execute
+importação, backfill ou deploy.</code></pre>
+      <h3>Prompt 5 — Registrar ideias para meu projeto futuro</h3>
+<pre><code>Leia CLAUDE.md. Analise somente conceitos gerais aprendidos neste dashboard que
+possam inspirar uma futura plataforma própria de risco de fornecedores. Crie
+docs/concepts-for-original-supplier-risk-project.md. Não copie funções nem trechos
+de código do projeto original; descreva somente conceitos e requisitos em
+linguagem própria.</code></pre>
+    </section>
+
+    <section id="s14">
+      <h2>14. Checklist de início para Alfredo</h2>
+      <ul>
+        <li>Tenho conta no GitHub.</li>
+        <li>Fiz um fork do repositório original para estudo.</li>
+        <li>Clonei/abri o fork no meu computador.</li>
+        <li>Coloquei este arquivo CLAUDE.md na raiz do repositório.</li>
+        <li>Instalei ou confirmei Node.js/npm.</li>
+        <li>Instalei ou confirmei Python.</li>
+        <li>Abri Claude Code dentro da pasta do projeto.</li>
+        <li>Pedi ao Claude Code para verificar o ambiente sem alterar arquivos.</li>
+        <li>Executei <code>npm install</code>.</li>
+        <li>Executei <code>npm run dev</code>.</li>
+        <li>Abri o dashboard local em <code>http://localhost:5173</code>.</li>
+        <li>Registrei o aprendizado em <code>docs/setup-notes.md</code>.</li>
+        <li>Mapeei a arquitetura sem alterar a aplicação.</li>
+        <li>Separei o estudo do futuro projeto autoral de fornecedores.</li>
+      </ul>
+    </section>
+
+    <section id="s15">
+      <h2>15. Fontes de referência verificadas</h2>
+      <h3>Projeto estudado</h3>
+      <ul>
+        <li><a href="https://github.com/kylemcdonald/ews/tree/main">Repositório original — kylemcdonald/ews</a></li>
+        <li><a href="https://github.com/kylemcdonald/ews/blob/main/README.md">README do projeto</a></li>
+        <li><a href="https://github.com/kylemcdonald/ews/blob/main/package.json">package.json do projeto</a></li>
+        <li><a href="https://github.com/kylemcdonald/ews/blob/main/requirements.txt">requirements.txt do projeto</a></li>
+      </ul>
+      <h3>GitHub e licenciamento</h3>
+      <ul>
+        <li><a href="https://docs.github.com/articles/licensing-a-repository">GitHub Docs — Licensing a repository</a></li>
+        <li><a href="https://choosealicense.com/no-permission/">Choose a License — No License</a></li>
+      </ul>
+      <h3>Claude Code</h3>
+      <ul>
+        <li><a href="https://code.claude.com/docs/en/memory">How Claude remembers your project</a></li>
+        <li><a href="https://code.claude.com/docs/en/best-practices">Best practices</a></li>
+        <li><a href="https://docs.anthropic.com/en/docs/claude-code/quickstart">Quickstart</a></li>
+      </ul>
+    </section>
+
+    <section id="s16">
+      <h2>16. Regra final para o Claude Code</h2>
+      <p>Priorize aprendizado, segurança e rastreabilidade. Nesta fase:</p>
+      <ul>
+        <li>Não tente transformar o EWS original em produto próprio.</li>
+        <li>Não implemente integrações externas.</li>
+        <li>Não faça deploy.</li>
+        <li>Não faça alterações grandes.</li>
+        <li>Não misture o projeto original com a futura solução de Supplier Risk.</li>
+        <li>Ajude Alfredo a compreender cada etapa e a construir conhecimento prático usando GitHub com segurança.</li>
+      </ul>
+    </section>
+  </main>
+</div>
+<a href="#" class="top">↑ Topo</a>
+</body>
+</html>
