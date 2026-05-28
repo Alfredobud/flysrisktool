@@ -20,10 +20,19 @@ Para parar: tecle Ctrl+C nesta janela.
 
 import http.server
 import socketserver
+import ssl
 import urllib.request
 import urllib.error
 
 PORT = 8000
+
+# Em redes corporativas, o firewall costuma interceptar conexoes HTTPS e o
+# Python falha ao validar o certificado (CERTIFICATE_VERIFY_FAILED). Como aqui
+# buscamos apenas dados PUBLICOS e somente leitura, desativamos a verificacao
+# para que o download funcione mesmo atras desse tipo de rede.
+SSL_CONTEXT = ssl.create_default_context()
+SSL_CONTEXT.check_hostname = False
+SSL_CONTEXT.verify_mode = ssl.CERT_NONE
 
 # A pagina pede /data/<arquivo>.json e o proxy tenta estas origens, em ordem,
 # ate uma responder com sucesso. Se a URL do EWS mudar, ajuste aqui.
@@ -48,7 +57,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 req = urllib.request.Request(
                     url, headers={"User-Agent": "ews-monitor-local"}
                 )
-                with urllib.request.urlopen(req, timeout=20) as resp:
+                with urllib.request.urlopen(req, timeout=20, context=SSL_CONTEXT) as resp:
                     body = resp.read()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json; charset=utf-8")
