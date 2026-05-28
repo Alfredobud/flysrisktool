@@ -18,6 +18,7 @@ Depois abra no navegador:
 Para parar: tecle Ctrl+C nesta janela.
 """
 
+import gzip
 import http.server
 import socketserver
 import ssl
@@ -54,11 +55,19 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         for base in UPSTREAMS:
             url = base + name
             try:
-                req = urllib.request.Request(
-                    url, headers={"User-Agent": "ews-monitor-local"}
-                )
+                # Cloudflare pode devolver 503 para pedidos que nao parecem um
+                # navegador. Por isso enviamos cabecalhos de navegador comum.
+                req = urllib.request.Request(url, headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/124.0.0.0 Safari/537.36",
+                    "Accept": "application/json, text/plain, */*",
+                })
                 with urllib.request.urlopen(req, timeout=20, context=SSL_CONTEXT) as resp:
                     body = resp.read()
+                # Se vier compactado (gzip), descompacta antes de seguir.
+                if body[:2] == b"\x1f\x8b":
+                    body = gzip.decompress(body)
                 # Alguns enderecos respondem "200" mas devolvem a pagina HTML do
                 # site (comeca com "<") em vez do JSON. So aceitamos JSON de verdade.
                 if not body.lstrip()[:1] in (b"{", b"["):
