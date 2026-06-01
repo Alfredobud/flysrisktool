@@ -79,6 +79,15 @@
 
   <div id="error"></div>
 
+  <h3 style="margin:22px 0 8px">Top 20 países — jatos no ar agora <span class="muted" style="font-size:13px">(por país de registro da matrícula)</span></h3>
+  <div class="tablewrap" style="max-height:none">
+    <table>
+      <thead><tr><th>#</th><th>País (registro)</th><th>Aeronaves</th><th>%</th></tr></thead>
+      <tbody id="rankbody"></tbody>
+    </table>
+  </div>
+
+  <h3 style="margin:26px 0 8px">Aeronaves ao vivo</h3>
   <div class="tablewrap">
     <table id="tbl">
       <thead><tr id="thead"></tr></thead>
@@ -87,6 +96,7 @@
   </div>
   <p class="muted" style="font-size:13px; margin-top:10px">
     Dica: clique no cabeçalho de uma coluna para ordenar. Lat/Lon abre o ponto no mapa.
+    O país vem do prefixo da matrícula (ex.: N = EUA, M = Ilha de Man).
   </p>
 </div>
 
@@ -96,6 +106,7 @@ const COLS = [
   {key:"label",          label:"Aeronave"},
   {key:"registration",   label:"Matrícula"},
   {key:"hex",            label:"Hex (ICAO)"},
+  {key:"country",        label:"País (registro)"},
   {key:"altitudeFt",     label:"Altitude (ft)", num:true},
   {key:"groundSpeedKt",  label:"Veloc. (kt)",   num:true},
   {key:"track",          label:"Rumo (°)",      num:true},
@@ -103,6 +114,154 @@ const COLS = [
   {key:"isAirborne",     label:"No ar"},
   {key:"observed_at",    label:"Visto em"},
 ];
+
+// Prefixos de matrícula (ICAO) -> país de registro. O casamento é feito pelo
+// prefixo MAIS LONGO que combina com o início da matrícula (ex.: "VP-B" antes de "V").
+const PREFIX_COUNTRY = {
+  "N":"Estados Unidos",
+  "C-":"Canadá","CF-":"Canadá",
+  "XA-":"México","XB-":"México","XC-":"México",
+  "G-":"Reino Unido",
+  "M-":"Ilha de Man",
+  "2-":"Guernsey",
+  "ZJ-":"Jersey",
+  "D-":"Alemanha",
+  "F-":"França",
+  "I-":"Itália",
+  "EC-":"Espanha",
+  "CS-":"Portugal",
+  "PH-":"Holanda",
+  "OO-":"Bélgica",
+  "LX-":"Luxemburgo",
+  "HB-":"Suíça",
+  "OE-":"Áustria",
+  "SE-":"Suécia",
+  "LN-":"Noruega",
+  "OY-":"Dinamarca",
+  "OH-":"Finlândia",
+  "TF-":"Islândia",
+  "EI-":"Irlanda","EJ-":"Irlanda",
+  "SP-":"Polônia",
+  "OK-":"Tchéquia",
+  "OM-":"Eslováquia",
+  "HA-":"Hungria",
+  "YR-":"Romênia",
+  "LZ-":"Bulgária",
+  "SX-":"Grécia",
+  "9A-":"Croácia",
+  "S5-":"Eslovênia",
+  "YU-":"Sérvia",
+  "Z3-":"Macedônia do Norte",
+  "9H-":"Malta",
+  "5B-":"Chipre",
+  "ES-":"Estônia",
+  "YL-":"Letônia",
+  "LY-":"Lituânia",
+  "ER-":"Moldávia",
+  "UR-":"Ucrânia",
+  "EW-":"Belarus",
+  "RA-":"Rússia","RF-":"Rússia",
+  "4K-":"Azerbaijão",
+  "EK-":"Armênia",
+  "4L-":"Geórgia",
+  "UK-":"Uzbequistão",
+  "UN-":"Cazaquistão","UP-":"Cazaquistão",
+  "T7-":"San Marino",
+  "3A-":"Mônaco",
+  "TC-":"Turquia",
+  "4X-":"Israel",
+  "JY-":"Jordânia",
+  "OD-":"Líbano",
+  "HZ-":"Arábia Saudita",
+  "A6-":"Emirados Árabes Unidos",
+  "A7-":"Catar",
+  "A9C-":"Bahrein",
+  "A4O-":"Omã",
+  "9K-":"Kuwait",
+  "YK-":"Síria",
+  "EP-":"Irã",
+  "YI-":"Iraque",
+  "AP-":"Paquistão",
+  "VT-":"Índia",
+  "4R-":"Sri Lanka",
+  "S2-":"Bangladesh",
+  "9N-":"Nepal",
+  "HS-":"Tailândia",
+  "XU-":"Camboja",
+  "VN-":"Vietnã",
+  "9M-":"Malásia",
+  "9V-":"Singapura",
+  "PK-":"Indonésia",
+  "RP-":"Filipinas",
+  "B-":"China/Taiwan/HK",
+  "JA":"Japão",
+  "HL":"Coreia do Sul",
+  "P-":"Coreia do Norte",
+  "VH-":"Austrália",
+  "ZK-":"Nova Zelândia","ZL-":"Nova Zelândia","ZM-":"Nova Zelândia",
+  "P2-":"Papua-Nova Guiné",
+  "ZS-":"África do Sul","ZT-":"África do Sul","ZU-":"África do Sul",
+  "5Y-":"Quênia",
+  "5H-":"Tanzânia",
+  "5X-":"Uganda",
+  "9G-":"Gana",
+  "5N-":"Nigéria",
+  "6V-":"Senegal",
+  "CN-":"Marrocos",
+  "7T-":"Argélia",
+  "TS-":"Tunísia",
+  "5A-":"Líbia",
+  "SU-":"Egito",
+  "ET-":"Etiópia",
+  "TR-":"Gabão",
+  "9Q-":"Rep. Dem. Congo",
+  "D2-":"Angola",
+  "C9-":"Moçambique",
+  "A2-":"Botsuana",
+  "V5-":"Namíbia",
+  "3B-":"Maurício",
+  "PP-":"Brasil","PR-":"Brasil","PS-":"Brasil","PT-":"Brasil","PU-":"Brasil",
+  "LV-":"Argentina","LQ-":"Argentina",
+  "CC-":"Chile",
+  "HK-":"Colômbia",
+  "OB-":"Peru",
+  "HC-":"Equador",
+  "CP-":"Bolívia",
+  "CX-":"Uruguai",
+  "ZP-":"Paraguai",
+  "YV-":"Venezuela",
+  "8R-":"Guiana",
+  "PZ-":"Suriname",
+  "TI-":"Costa Rica",
+  "HP-":"Panamá",
+  "YN-":"Nicarágua",
+  "YS-":"El Salvador",
+  "TG-":"Guatemala",
+  "HR-":"Honduras",
+  "V3-":"Belize",
+  "CU-":"Cuba",
+  "HI-":"Rep. Dominicana",
+  "6Y-":"Jamaica",
+  "9Y-":"Trinidad e Tobago",
+  "C6-":"Bahamas",
+  "8P-":"Barbados",
+  "P4-":"Aruba",
+  // Territórios offshore comuns em jatos privados (prefixos VP-/VQ- por 2ª letra):
+  "VP-A":"Anguilla",
+  "VP-B":"Bermudas","VQ-B":"Bermudas",
+  "VP-C":"Ilhas Cayman",
+  "VP-G":"Gibraltar",
+  "VP-L":"Ilhas Virgens Britânicas",
+  "VQ-T":"Turks e Caicos",
+  "V2-":"Antígua e Barbuda",
+};
+const _PREFIX_KEYS = Object.keys(PREFIX_COUNTRY).sort((a,b)=>b.length-a.length);
+function regCountry(reg){
+  if(!reg) return "";
+  const r = String(reg).toUpperCase().trim();
+  for(const k of _PREFIX_KEYS){ if(r.startsWith(k)) return PREFIX_COUNTRY[k]; }
+  return "";
+}
 
 let rows = [];
 let sortKey = "label", sortDir = 1;
@@ -157,7 +316,7 @@ function renderTable(){
   const q = $("search").value.trim().toLowerCase();
   let view = rows;
   if(q) view = rows.filter(r =>
-    [r.label,r.registration,r.hex].some(x => String(x||"").toLowerCase().includes(q)));
+    [r.label,r.registration,r.hex,r.country].some(x => String(x||"").toLowerCase().includes(q)));
 
   view = view.slice().sort((a,b)=>{
     let x=a[sortKey], y=b[sortKey];
@@ -183,6 +342,7 @@ function renderTable(){
       <td>${r.label||"—"}</td>
       <td>${r.registration||"—"}</td>
       <td>${r.hex||"—"}</td>
+      <td>${r.country||"—"}</td>
       <td>${fmtNum(r.altitudeFt)}</td>
       <td>${fmtNum(r.groundSpeedKt)}</td>
       <td>${r.track!=null?Math.round(r.track):"—"}</td>
@@ -191,6 +351,19 @@ function renderTable(){
       <td>${fmtTime(r.observed_at)}</td>
     </tr>`;
   }).join("") || `<tr><td colspan="${COLS.length}" class="muted" style="padding:20px">Nenhuma aeronave no ar neste snapshot.</td></tr>`;
+}
+
+function renderRanking(){
+  const counts = {};
+  for(const r of rows){
+    const c = r.country || "Desconhecido";
+    counts[c] = (counts[c]||0) + 1;
+  }
+  const total = rows.length || 1;
+  const top = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,20);
+  $("rankbody").innerHTML = top.map(([c,n],i)=>
+    `<tr><td>${i+1}</td><td>${c}</td><td>${n}</td><td>${(n/total*100).toFixed(1)}%</td></tr>`
+  ).join("") || `<tr><td colspan="4" class="muted" style="padding:16px">Sem aeronaves no ar neste snapshot.</td></tr>`;
 }
 
 async function fetchSnapshot(file){
@@ -220,7 +393,9 @@ async function load(){
   try{
     const data = await fetchSnapshot(file);
     rows = Array.isArray(data.liveAircraft) ? data.liveAircraft : [];
+    rows.forEach(r => { r.country = regCountry(r.registration); });
     renderCards(data);
+    renderRanking();
     renderTable();
     $("status").textContent = "Atualizado: " + new Date().toLocaleTimeString("pt-BR");
   }catch(e){
